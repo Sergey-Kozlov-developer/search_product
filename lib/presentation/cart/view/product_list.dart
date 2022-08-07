@@ -10,6 +10,7 @@ import 'package:search_product/presentation/cart/provider/cart_provider.dart';
 import 'package:search_product/presentation/cart/view/cart_screen.dart';
 import 'package:search_product/presentation/resources/app_colors.dart';
 import 'package:search_product/presentation/search/search_widget.dart';
+import 'package:share_plus/share_plus.dart';
 
 class ProductList extends StatefulWidget {
   const ProductList({Key? key}) : super(key: key);
@@ -20,6 +21,18 @@ class ProductList extends StatefulWidget {
 
 class _ProductListState extends State<ProductList> {
   DBHelper? dbHelper = DBHelper();
+
+  late List<Item> productsItem;
+
+//
+  String query = '';
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    productsItem = products;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +60,7 @@ class _ProductListState extends State<ProductList> {
 
     return Scaffold(
       appBar: AppBar(
-        // title: buildSearch(),
+        title: Text('Поиск'),
         actions: [
           Badge(
             badgeContent: Consumer<CartProvider>(
@@ -77,97 +90,102 @@ class _ProductListState extends State<ProductList> {
           ),
         ],
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 1.0),
-        shrinkWrap: true,
-        itemCount: products.length,
-        itemBuilder: (context, index) {
-          return Stack(
-            alignment: Alignment.bottomRight,
-            children: [
-              SizedBox(
-                height: 100,
-                child: Card(
-                  color: Colors.white,
-                  elevation: 5.0,
-                  child: Padding(
-                    padding: const EdgeInsets.all(4.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        CachedNetworkImage(
-                          imageUrl: products[index].image,
-                          width: 80,
-                          height: 80,
-                          progressIndicatorBuilder: (context, url, progress) {
-                            return Container(
-                              alignment: Alignment.center,
-                              height: 24,
-                              width: 24,
-                              child: CircularProgressIndicator(
-                                backgroundColor: AppColors.mainDarkBlue,
-                                value: progress.progress,
+      body: Column(
+        children: [
+          SearchWidget(
+            text: query,
+            hintText: 'Введите запрос...',
+            onChanged: searchBook,
+          ),
+          Expanded(
+            child: ListView.builder(
+              padding:
+                  const EdgeInsets.symmetric(vertical: 10.0, horizontal: 1.0),
+              shrinkWrap: true,
+              itemCount: products.length,
+              itemBuilder: (context, index) {
+                return Stack(
+                  alignment: Alignment.bottomRight,
+                  children: [
+                    SizedBox(
+                      height: 100,
+                      child: Card(
+                        color: Colors.white,
+                        elevation: 5.0,
+                        child: Padding(
+                          padding: const EdgeInsets.all(4.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.max,
+                            children: [
+                              CachedNetworkImage(
+                                imageUrl: products[index].image,
+                                width: 80,
+                                height: 80,
+                                progressIndicatorBuilder:
+                                    (context, url, progress) {
+                                  return Container(
+                                    alignment: Alignment.center,
+                                    height: 24,
+                                    width: 24,
+                                    child: CircularProgressIndicator(
+                                      backgroundColor: AppColors.mainDarkBlue,
+                                      value: progress.progress,
+                                    ),
+                                  );
+                                },
                               ),
-                            );
-                          },
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const SizedBox(
+                                    height: 5.0,
+                                  ),
+                                  Text(products[index].name.toString()),
+                                  Text(products[index].subName.toString()),
+                                  Text(products[index].unit.toString()),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(
-                              height: 5.0,
-                            ),
-                            Text(products[index].name.toString()),
-                            Text(products[index].subName.toString()),
-                            Text(products[index].unit.toString()),
-                          ],
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ElevatedButton(
-                  style:
-                      ElevatedButton.styleFrom(primary: AppColors.mainDarkBlue),
-                  onPressed: () {
-                    saveData(index);
-                  },
-                  child: Icon(Icons.star_border_outlined),
-                ),
-              ),
-            ],
-          );
-        },
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                            primary: AppColors.mainDarkBlue),
+                        onPressed: () {
+                          saveData(index);
+                        },
+                        child: Icon(Icons.star_border_outlined),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
 
-// Widget buildSearch() {
-//   return SearchWidget(
-//     text: query,
-//     hintText: 'Введите запрос...',
-//     onChanged: searchBook,
-//   );
-// }
-//
-// // метод для поиска
-// void searchBook(String query) {
-//   final productsItem = products.where((product) {
-//     final titleLower = product.name.toLowerCase();
-//     final authorLower = product.subName.toLowerCase();
-//     final searchLower = query.toLowerCase();
-//
-//     return titleLower.contains(searchLower) ||
-//         authorLower.contains(searchLower);
-//   }).toList();
-//
-//   setState(() {
-//     this.query = query;
-//     this.productsItem = productsItem;
-//   });
-// }
+// метод для поиска
+  void searchBook(String query) {
+    final productsItem = products.where((product) {
+      final titleLower = product.name.toLowerCase();
+      final authorLower = product.subName.toLowerCase();
+      final searchLower = query.toLowerCase();
+
+      return titleLower.contains(searchLower) ||
+          authorLower.contains(searchLower);
+    }).toList();
+
+    setState(() {
+      this.query = query;
+      this.productsItem = productsItem;
+    });
+  }
 }
