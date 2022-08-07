@@ -24,9 +24,9 @@ class _ProductListState extends State<ProductList> {
 
   late List<Item> productsItem;
 
-//
+// для поиска
   String query = '';
-
+// для поиска
   @override
   void initState() {
     // TODO: implement initState
@@ -92,6 +92,7 @@ class _ProductListState extends State<ProductList> {
       ),
       body: Column(
         children: [
+          // для поиска
           SearchWidget(
             text: query,
             hintText: 'Введите запрос...',
