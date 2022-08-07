@@ -28,11 +28,11 @@ class _ProductListState extends State<ProductList> {
   String query = '';
 // для поиска
   @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    productsItem = products;
-  }
+  // void initState() {
+  //   // TODO: implement initState
+  //   super.initState();
+  //   productsItem = products;
+  // }
 
   @override
   Widget build(BuildContext context) {
