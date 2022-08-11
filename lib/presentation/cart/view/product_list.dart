@@ -22,17 +22,44 @@ class ProductList extends StatefulWidget {
 class _ProductListState extends State<ProductList> {
   DBHelper? dbHelper = DBHelper();
 
-  late List<Item> productsItem;
+  late List<Item> productsSearch;
 
 // для поиска
-  String query = '';
+//   String query = '';
 // для поиска
-  @override
+//   @override
   // void initState() {
   //   // TODO: implement initState
   //   super.initState();
   //   productsItem = products;
   // }
+  @override
+  void initState() {
+    super.initState();
+    productsSearch = products;
+    _filteredList = productsSearch;
+
+    _searchController.addListener(_searchList);
+  }
+
+
+  var _filteredList = <Item>[];
+
+  final _searchController = TextEditingController();
+
+  void _searchList() {
+    final query = _searchController.text;
+    if (query.isNotEmpty) {
+      _filteredList = productsSearch.where((Item item) {
+        return item.name.toLowerCase().contains(query.toLowerCase());
+      }).toList();
+    } else {
+      _filteredList = productsSearch;
+    }
+    setState(() {});
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -90,82 +117,93 @@ class _ProductListState extends State<ProductList> {
           ),
         ],
       ),
-      body: Column(
+      body: Stack(
         children: [
           // для поиска
-          SearchWidget(
-            text: query,
-            hintText: 'Введите запрос...',
-            onChanged: searchBook,
-          ),
-          Expanded(
-            child: ListView.builder(
-              padding:
-                  const EdgeInsets.symmetric(vertical: 10.0, horizontal: 1.0),
-              shrinkWrap: true,
-              itemCount: products.length,
-              itemBuilder: (context, index) {
-                return Stack(
-                  alignment: Alignment.bottomRight,
-                  children: [
-                    SizedBox(
-                      height: 100,
-                      child: Card(
-                        color: Colors.white,
-                        elevation: 5.0,
-                        child: Padding(
-                          padding: const EdgeInsets.all(4.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.max,
-                            children: [
-                              CachedNetworkImage(
-                                imageUrl: products[index].image,
-                                width: 80,
-                                height: 80,
-                                progressIndicatorBuilder:
-                                    (context, url, progress) {
-                                  return Container(
-                                    alignment: Alignment.center,
-                                    height: 24,
-                                    width: 24,
-                                    child: CircularProgressIndicator(
-                                      backgroundColor: AppColors.mainDarkBlue,
-                                      value: progress.progress,
-                                    ),
-                                  );
-                                },
-                              ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const SizedBox(
-                                    height: 5.0,
+          // SearchWidget(
+          //   text: query,
+          //   hintText: 'Введите запрос...',
+          //   onChanged: searchBook,
+          // ),
+          ListView.builder(
+            padding: const EdgeInsets.only(top: 70),
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            shrinkWrap: true,
+            itemCount: _filteredList.length,
+            itemBuilder: (context, index) {
+              final searchP = products[index];
+              return Stack(
+                alignment: Alignment.bottomRight,
+                children: [
+                  SizedBox(
+                    height: 100,
+                    child: Card(
+                      color: Colors.white,
+                      elevation: 5.0,
+                      child: Padding(
+                        padding: const EdgeInsets.all(4.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.max,
+                          children: [
+                            CachedNetworkImage(
+                              imageUrl: searchP.image,
+                              width: 80,
+                              height: 80,
+                              progressIndicatorBuilder:
+                                  (context, url, progress) {
+                                return Container(
+                                  alignment: Alignment.center,
+                                  height: 24,
+                                  width: 24,
+                                  child: CircularProgressIndicator(
+                                    backgroundColor: AppColors.mainDarkBlue,
+                                    value: progress.progress,
                                   ),
-                                  Text(products[index].name.toString()),
-                                  Text(products[index].subName.toString()),
-                                  Text(products[index].unit.toString()),
-                                ],
-                              ),
-                            ],
-                          ),
+                                );
+                              },
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(
+                                  height: 5.0,
+                                ),
+                                Text(searchP.name),
+                                Text(searchP.subName),
+                                Text(searchP.unit),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                            primary: AppColors.mainDarkBlue),
-                        onPressed: () {
-                          saveData(index);
-                        },
-                        child: Icon(Icons.star_border_outlined),
-                      ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                          primary: AppColors.mainDarkBlue),
+                      onPressed: () {
+                        saveData(index);
+                      },
+                      child: Icon(Icons.star_border_outlined),
                     ),
-                  ],
-                );
-              },
+                  ),
+                ],
+              );
+            },
+          ),
+          Padding(
+            padding: const EdgeInsets.all(10),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                labelText: 'Search',
+                filled: true,
+                fillColor: Colors.white.withAlpha(235),
+                border: OutlineInputBorder(),
+              ),
             ),
           ),
         ],
@@ -174,19 +212,19 @@ class _ProductListState extends State<ProductList> {
   }
 
 // метод для поиска
-  void searchBook(String query) {
-    final productsItem = products.where((product) {
-      final titleLower = product.name.toLowerCase();
-      final authorLower = product.subName.toLowerCase();
-      final searchLower = query.toLowerCase();
-
-      return titleLower.contains(searchLower) ||
-          authorLower.contains(searchLower);
-    }).toList();
-
-    setState(() {
-      this.query = query;
-      this.productsItem = productsItem;
-    });
-  }
+//   void searchBook(String query) {
+//     final productsItem = products.where((product) {
+//       final titleLower = product.name.toLowerCase();
+//       final authorLower = product.subName.toLowerCase();
+//       final searchLower = query.toLowerCase();
+//
+//       return titleLower.contains(searchLower) ||
+//           authorLower.contains(searchLower);
+//     }).toList();
+//
+//     setState(() {
+//       this.query = query;
+//       this.productsItem = productsItem;
+//     });
+//   }
 }
