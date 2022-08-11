@@ -51,7 +51,7 @@ class _ProductListState extends State<ProductList> {
     final query = _searchController.text;
     if (query.isNotEmpty) {
       _filteredList = productsSearch.where((Item item) {
-        return item.name.toLowerCase().contains(query.toLowerCase());
+        return item.subName.toLowerCase().contains(query.toLowerCase());
       }).toList();
     } else {
       _filteredList = productsSearch;
