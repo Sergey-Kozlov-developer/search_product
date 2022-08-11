@@ -42,7 +42,6 @@ class _ProductListState extends State<ProductList> {
     _searchController.addListener(_searchList);
   }
 
-
   var _filteredList = <Item>[];
 
   final _searchController = TextEditingController();
@@ -51,7 +50,7 @@ class _ProductListState extends State<ProductList> {
     final query = _searchController.text;
     if (query.isNotEmpty) {
       _filteredList = productsSearch.where((Item item) {
-        return item.subName.toLowerCase().contains(query.toLowerCase());
+        return item.name.toLowerCase().contains(query.toLowerCase());
       }).toList();
     } else {
       _filteredList = productsSearch;
@@ -59,7 +58,22 @@ class _ProductListState extends State<ProductList> {
     setState(() {});
   }
 
-
+  // метод для поиска
+//   void searchBook(String query) {
+//     final productsItem = products.where((product) {
+//       final titleLower = product.name.toLowerCase();
+//       final authorLower = product.subName.toLowerCase();
+//       final searchLower = query.toLowerCase();
+//
+//       return titleLower.contains(searchLower) ||
+//           authorLower.contains(searchLower);
+//     }).toList();
+//
+//     setState(() {
+//       this.query = query;
+//       this.productsItem = productsItem;
+//     });
+//   }
 
   @override
   Widget build(BuildContext context) {
@@ -119,66 +133,17 @@ class _ProductListState extends State<ProductList> {
       ),
       body: Stack(
         children: [
-          // для поиска
-          // SearchWidget(
-          //   text: query,
-          //   hintText: 'Введите запрос...',
-          //   onChanged: searchBook,
-          // ),
           ListView.builder(
             padding: const EdgeInsets.only(top: 70),
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             shrinkWrap: true,
             itemCount: _filteredList.length,
             itemBuilder: (context, index) {
-              final searchP = products[index];
+              final product = products[index];
               return Stack(
                 alignment: Alignment.bottomRight,
                 children: [
-                  SizedBox(
-                    height: 100,
-                    child: Card(
-                      color: Colors.white,
-                      elevation: 5.0,
-                      child: Padding(
-                        padding: const EdgeInsets.all(4.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.max,
-                          children: [
-                            CachedNetworkImage(
-                              imageUrl: searchP.image,
-                              width: 80,
-                              height: 80,
-                              progressIndicatorBuilder:
-                                  (context, url, progress) {
-                                return Container(
-                                  alignment: Alignment.center,
-                                  height: 24,
-                                  width: 24,
-                                  child: CircularProgressIndicator(
-                                    backgroundColor: AppColors.mainDarkBlue,
-                                    value: progress.progress,
-                                  ),
-                                );
-                              },
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const SizedBox(
-                                  height: 5.0,
-                                ),
-                                Text(searchP.name),
-                                Text(searchP.subName),
-                                Text(searchP.unit),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
+                  BodyPageWidget(product: product),
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: ElevatedButton(
@@ -190,6 +155,7 @@ class _ProductListState extends State<ProductList> {
                       child: Icon(Icons.star_border_outlined),
                     ),
                   ),
+
                 ],
               );
             },
@@ -211,20 +177,62 @@ class _ProductListState extends State<ProductList> {
     );
   }
 
-// метод для поиска
-//   void searchBook(String query) {
-//     final productsItem = products.where((product) {
-//       final titleLower = product.name.toLowerCase();
-//       final authorLower = product.subName.toLowerCase();
-//       final searchLower = query.toLowerCase();
-//
-//       return titleLower.contains(searchLower) ||
-//           authorLower.contains(searchLower);
-//     }).toList();
-//
-//     setState(() {
-//       this.query = query;
-//       this.productsItem = productsItem;
-//     });
-//   }
+
+}
+
+class BodyPageWidget extends StatelessWidget {
+  const BodyPageWidget({
+    Key? key,
+    required this.product,
+  }) : super(key: key);
+
+  final Item product;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 100,
+      child: Card(
+        color: Colors.white,
+        elevation: 5.0,
+        child: Padding(
+          padding: const EdgeInsets.all(4.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              CachedNetworkImage(
+                imageUrl: product.image,
+                width: 80,
+                height: 80,
+                progressIndicatorBuilder:
+                    (context, url, progress) {
+                  return Container(
+                    alignment: Alignment.center,
+                    height: 24,
+                    width: 24,
+                    child: CircularProgressIndicator(
+                      backgroundColor: AppColors.mainDarkBlue,
+                      value: progress.progress,
+                    ),
+                  );
+                },
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(
+                    height: 5.0,
+                  ),
+                  Text(product.name),
+                  Text(product.subName),
+                  Text(product.unit),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
